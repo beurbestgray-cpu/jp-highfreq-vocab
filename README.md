@@ -1,15 +1,35 @@
 # 日语高频词学习工具
 
-给 Gray 用的小工具：约 100 个 JLPT N5 / 日常高频词，命令行刷题 + 导出 A4 速查 PDF。
+给 Gray 用的小工具：约 100 个 JLPT N5 / 日常高频词，**手机网页四选一** + 命令行刷题 + 导出 A4 速查 PDF。
+
+## 手机网页刷题（推荐）
+
+不用装 Python。打开下面任一文件即可四选一测验（词表已嵌进页面，**离线也能用**）：
+
+- `docs/index.html`（也可开 GitHub Pages）
+- `web/index.html`（同上内容）
+
+**手机用法：**
+
+1. 用 Safari / Chrome 打开该 HTML（从 GitHub 仓库点进文件 → 下载，或用「在浏览器打开」的 Pages 链接）。
+2. 选「练 10 题 / 20 题 / 全部」，点大按钮选中文意思。
+3. 可勾选「题目显示罗马音」。
+4. 想主屏幕图标：浏览器分享 → 添加到主屏幕。
+
+PDF 速查表：`output/jp_highfreq_vocab.pdf`（约 103 词，A4）。
+
+改了 `words.csv` 后：让助手重新导出 `docs/index.html`，并运行 `python make_pdf.py` 更新 PDF。
+
 
 ## 文件
 
 | 文件 | 作用 |
 |------|------|
+| `docs/index.html` / `web/index.html` | **手机网页测验**（单文件，内嵌词表） |
 | `words.csv` | 词表（汉字、假名、罗马音、中文、例句） |
-| `study.py` | 测验 / 列表 / 加词 |
+| `study.py` | 命令行测验 / 列表 / 加词 |
 | `make_pdf.py` | 生成速查 PDF |
-| `output/` | PDF 输出目录 |
+| `output/jp_highfreq_vocab.pdf` | A4 词表 PDF |
 | `requirements.txt` | Python 依赖（PDF 用 reportlab） |
 
 ## 安装
@@ -88,7 +108,7 @@ kanji,kana,romaji,meaning_zh,example_ja,example_zh
 gh auth login
 cd jp-highfreq-vocab
 git init
-git add words.csv study.py make_pdf.py requirements.txt README.md
+git add words.csv study.py make_pdf.py requirements.txt README.md docs/ web/ output/jp_highfreq_vocab.pdf
 git commit -m "日语高频词：词表 + quiz + PDF"
 gh repo create jp-highfreq-vocab --public --source=. --remote=origin --push
 ```
