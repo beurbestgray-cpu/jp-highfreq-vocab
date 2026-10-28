@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#1a1a2e" />
+<title>日语高频词 · 四选一</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --text: #f2f4f8;
+    --muted: #9aa3b5;
+    --accent: #5b8cff;
+    --ok: #3ecf8e;
+    --bad: #ff6b6b;
+    --border: #2a2f3d;
+    --btn: #252a38;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Noto Sans SC", "Noto Sans JP", sans-serif;
+    min-height: 100%;
+  }
+  body { padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); max-width: 480px; margin: 0 auto; }
+  h1 { font-size: 1.15rem; font-weight: 700; margin: 4px 0 2px; letter-spacing: 0.02em; }
+  .sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 16px; }
+  .bar {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 8px; margin-bottom: 14px; font-size: 0.9rem; color: var(--muted);
+  }
+  .bar strong { color: var(--text); }
+  .progress {
+    height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; margin-bottom: 18px;
+  }
+  .progress > i {
+    display: block; height: 100%; width: 0%; background: var(--accent);
+    border-radius: 99px; transition: width 0.25s ease;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 22px 18px; text-align: center; margin-bottom: 16px;
+  }
+  .kanji { font-size: 2.4rem; font-weight: 700; line-height: 1.2; word-break: break-word; }
+  .kana { font-size: 1.15rem; color: var(--muted); margin-top: 8px; }
+  .romaji { font-size: 0.9rem; color: #6b7385; margin-top: 4px; letter-spacing: 0.04em; }
+  .example { margin-top: 14px; font-size: 0.9rem; color: var(--muted); display: none; }
+  .example.show { display: block; }
+  .choices { display: grid; gap: 10px; }
+  .choice {
+    appearance: none; border: 1.5px solid var(--border); background: var(--btn);
+    color: var(--text); border-radius: 14px; padding: 16px 14px;
+    font-size: 1.05rem; text-align: left; cursor: pointer;
+    min-height: 52px; transition: border-color 0.15s, background 0.15s, transform 0.05s;
+  }
+  .choice:active:not(:disabled) { transform: scale(0.98); }
+  .choice:disabled { opacity: 0.95; cursor: default; }
+  .choice.correct { border-color: var(--ok); background: rgba(62,207,142,0.15); }
+  .choice.wrong { border-color: var(--bad); background: rgba(255,107,107,0.12); }
+  .feedback {
+    min-height: 1.4em; text-align: center; margin: 12px 0 8px;
+    font-size: 0.95rem; color: var(--muted);
+  }
+  .feedback.ok { color: var(--ok); }
+  .feedback.bad { color: var(--bad); }
+  .actions { display: flex; gap: 10px; margin-top: 8px; }
+  .btn {
+    flex: 1; appearance: none; border: none; border-radius: 14px;
+    padding: 16px; font-size: 1.05rem; font-weight: 600; cursor: pointer;
+    min-height: 52px;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:disabled { opacity: 0.4; cursor: default; }
+  .btn-ghost { background: var(--btn); color: var(--text); border: 1px solid var(--border); }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .start-card, .result-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px 20px; text-align: center;
+  }
+  .start-card p, .result-card p { color: var(--muted); line-height: 1.55; }
+  .score-big { font-size: 2.6rem; font-weight: 800; margin: 12px 0 4px; }
+  .toggle {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin: 16px 0; font-size: 0.9rem; color: var(--muted);
+  }
+  .toggle input { width: 18px; height: 18px; }
+  .hint { font-size: 0.8rem; color: #6b7385; margin-top: 18px; line-height: 1.4; }
+</style>
+</head>
+<body>
+  <h1>日语高频词</h1>
+  <p class="sub">四选一 · 离线可用 · 103 词</p>
+
+  <div id="screen-start" class="screen active">
+    <div class="start-card">
+      <p>看汉字 / 假名，选正确中文意思。<br/>点错会显示正确答案和例句。</p>
+      <div class="toggle">
+        <label><input type="checkbox" id="showRomaji" /> 题目显示罗马音</label>
+      </div>
+      <div class="actions" style="flex-direction:column">
+        <button class="btn btn-primary" id="btnStart10">练 10 题</button>
+        <button class="btn btn-ghost" id="btnStart20">练 20 题</button>
+        <button class="btn btn-ghost" id="btnStartAll">全部打乱</button>
+      </div>
+      <p class="hint">把本页加到主屏幕，或保存到「文件」，没网也能刷。</p>
+    </div>
+  </div>
+
+  <div id="screen-quiz" class="screen">
+    <div class="bar">
+      <span>第 <strong id="qNum">1</strong> / <span id="qTotal">10</span> 题</span>
+      <span>得分 <strong id="score">0</strong></span>
+    </div>
+    <div class="progress"><i id="prog"></i></div>
+    <div class="card">
+      <div class="kanji" id="kanji">—</div>
+      <div class="kana" id="kana"></div>
+      <div class="romaji" id="romaji" hidden></div>
+      <div class="example" id="example"></div>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions">
+      <button class="btn btn-ghost" id="btnHome" type="button">结束</button>
+      <button class="btn btn-primary" id="btnNext" type="button" disabled>下一题</button>
+    </div>
+  </div>
+
+  <div id="screen-result" class="screen">
+    <div class="result-card">
+      <p>本轮结束</p>
+      <div class="score-big" id="finalScore">0/10</div>
+      <p id="finalMsg"></p>
+      <div class="actions" style="flex-direction:column;margin-top:20px">
+        <button class="btn btn-primary" id="btnAgain">再来一轮</button>
+        <button class="btn btn-ghost" id="btnBack">回首页</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const WORDS = [{"kanji": "私", "kana": "わたし", "romaji": "watashi", "meaning_zh": "我", "example_ja": "私は学生です。", "example_zh": "我是学生。"}, {"kanji": "あなた", "kana": "あなた", "romaji": "anata", "meaning_zh": "你", "example_ja": "あなたは誰ですか。", "example_zh": "你是谁？"}, {"kanji": "人", "kana": "ひと", "romaji": "hito", "meaning_zh": "人", "example_ja": "あの人は先生です。", "example_zh": "那个人是老师。"}, {"kanji": "男", "kana": "おとこ", "romaji": "otoko", "meaning_zh": "男人", "example_ja": "男の人です。", "example_zh": "是男的。"}, {"kanji": "女", "kana": "おんな", "romaji": "onna", "meaning_zh": "女人", "example_ja": "女の人です。", "example_zh": "是女的。"}, {"kanji": "子供", "kana": "こども", "romaji": "kodomo", "meaning_zh": "孩子", "example_ja": "子供がいます。", "example_zh": "有孩子。"}, {"kanji": "先生", "kana": "せんせい", "romaji": "sensei", "meaning_zh": "老师", "example_ja": "先生に聞きます。", "example_zh": "问老师。"}, {"kanji": "学生", "kana": "がくせい", "romaji": "gakusei", "meaning_zh": "学生", "example_ja": "彼は学生です。", "example_zh": "他是学生。"}, {"kanji": "会社", "kana": "かいしゃ", "romaji": "kaisha", "meaning_zh": "公司", "example_ja": "会社で働きます。", "example_zh": "在公司工作。"}, {"kanji": "家", "kana": "いえ", "romaji": "ie", "meaning_zh": "家（建筑物）", "example_ja": "家に帰ります。", "example_zh": "回家。"}, {"kanji": "うち", "kana": "うち", "romaji": "uchi", "meaning_zh": "家（自家）", "example_ja": "うちで食べます。", "example_zh": "在家吃。"}, {"kanji": "学校", "kana": "がっこう", "romaji": "gakkou", "meaning_zh": "学校", "example_ja": "学校へ行きます。", "example_zh": "去学校。"}, {"kanji": "駅", "kana": "えき", "romaji": "eki", "meaning_zh": "车站", "example_ja": "駅で会いましょう。", "example_zh": "在车站见吧。"}, {"kanji": "店", "kana": "みせ", "romaji": "mise", "meaning_zh": "商店", "example_ja": "この店は安いです。", "example_zh": "这家店便宜。"}, {"kanji": "病院", "kana": "びょういん", "romaji": "byouin", "meaning_zh": "医院", "example_ja": "病院に行きます。", "example_zh": "去医院。"}, {"kanji": "銀行", "kana": "ぎんこう", "romaji": "ginkou", "meaning_zh": "银行", "example_ja": "銀行でお金を下ろします。", "example_zh": "在银行取钱。"}, {"kanji": "郵便局", "kana": "ゆうびんきょく", "romaji": "yuubinkyoku", "meaning_zh": "邮局", "example_ja": "郵便局はどこですか。", "example_zh": "邮局在哪里？"}, {"kanji": "図書館", "kana": "としょかん", "romaji": "toshokan", "meaning_zh": "图书馆", "example_ja": "図書館で勉強します。", "example_zh": "在图书馆学习。"}, {"kanji": "本", "kana": "ほん", "romaji": "hon", "meaning_zh": "书", "example_ja": "本を読みます。", "example_zh": "读书。"}, {"kanji": "新聞", "kana": "しんぶん", "romaji": "shinbun", "meaning_zh": "报纸", "example_ja": "新聞を見ます。", "example_zh": "看报纸。"}, {"kanji": "辞書", "kana": "じしょ", "romaji": "jisho", "meaning_zh": "词典", "example_ja": "辞書を使います。", "example_zh": "用词典。"}, {"kanji": "手紙", "kana": "てがみ", "romaji": "tegami", "meaning_zh": "信", "example_ja": "手紙を書きます。", "example_zh": "写信。"}, {"kanji": "鉛筆", "kana": "えんぴつ", "romaji": "enpitsu", "meaning_zh": "铅笔", "example_ja": "鉛筆で書きます。", "example_zh": "用铅笔写。"}, {"kanji": "ペン", "kana": "ペン", "romaji": "pen", "meaning_zh": "笔", "example_ja": "ペンを貸してください。", "example_zh": "请把笔借给我。"}, {"kanji": "時計", "kana": "とけい", "romaji": "tokei", "meaning_zh": "钟表", "example_ja": "時計を見てください。", "example_zh": "请看表。"}, {"kanji": "傘", "kana": "かさ", "romaji": "kasa", "meaning_zh": "伞", "example_ja": "傘を持っていきます。", "example_zh": "带伞去。"}, {"kanji": "鞄", "kana": "かばん", "romaji": "kaban", "meaning_zh": "包", "example_ja": "鞄が重いです。", "example_zh": "包很重。"}, {"kanji": "靴", "kana": "くつ", "romaji": "kutsu", "meaning_zh": "鞋", "example_ja": "靴を脱いでください。", "example_zh": "请脱鞋。"}, {"kanji": "服", "kana": "ふく", "romaji": "fuku", "meaning_zh": "衣服", "example_ja": "新しい服を買いました。", "example_zh": "买了新衣服。"}, {"kanji": "車", "kana": "くるま", "romaji": "kuruma", "meaning_zh": "汽车", "example_ja": "車で行きます。", "example_zh": "开车去。"}, {"kanji": "電車", "kana": "でんしゃ", "romaji": "densha", "meaning_zh": "电车", "example_ja": "電車に乗ります。", "example_zh": "坐电车。"}, {"kanji": "バス", "kana": "バス", "romaji": "basu", "meaning_zh": "巴士", "example_ja": "バスで通学します。", "example_zh": "坐巴士上学。"}, {"kanji": "自転車", "kana": "じてんしゃ", "romaji": "jitensha", "meaning_zh": "自行车", "example_ja": "自転車で行きます。", "example_zh": "骑自行车去。"}, {"kanji": "飛行機", "kana": "ひこうき", "romaji": "hikouki", "meaning_zh": "飞机", "example_ja": "飛行機で東京へ行きます。", "example_zh": "坐飞机去东京。"}, {"kanji": "船", "kana": "ふね", "romaji": "fune", "meaning_zh": "船", "example_ja": "船に乗ります。", "example_zh": "坐船。"}, {"kanji": "水", "kana": "みず", "romaji": "mizu", "meaning_zh": "水", "example_ja": "水を飲みます。", "example_zh": "喝水。"}, {"kanji": "お茶", "kana": "おちゃ", "romaji": "ocha", "meaning_zh": "茶", "example_ja": "お茶をください。", "example_zh": "请给我茶。"}, {"kanji": "コーヒー", "kana": "コーヒー", "romaji": "koohii", "meaning_zh": "咖啡", "example_ja": "コーヒーが好きです。", "example_zh": "喜欢咖啡。"}, {"kanji": "牛乳", "kana": "ぎゅうにゅう", "romaji": "gyuunyuu", "meaning_zh": "牛奶", "example_ja": "牛乳を飲みます。", "example_zh": "喝牛奶。"}, {"kanji": "ご飯", "kana": "ごはん", "romaji": "gohan", "meaning_zh": "米饭/餐", "example_ja": "ご飯を食べます。", "example_zh": "吃饭。"}, {"kanji": "パン", "kana": "パン", "romaji": "pan", "meaning_zh": "面包", "example_ja": "パンを買います。", "example_zh": "买面包。"}, {"kanji": "肉", "kana": "にく", "romaji": "niku", "meaning_zh": "肉", "example_ja": "肉が好きです。", "example_zh": "喜欢肉。"}, {"kanji": "魚", "kana": "さかな", "romaji": "sakana", "meaning_zh": "鱼", "example_ja": "魚を食べます。", "example_zh": "吃鱼。"}, {"kanji": "野菜", "kana": "やさい", "romaji": "yasai", "meaning_zh": "蔬菜", "example_ja": "野菜は体にいいです。", "example_zh": "蔬菜对身体好。"}, {"kanji": "果物", "kana": "くだもの", "romaji": "kudamono", "meaning_zh": "水果", "example_ja": "果物を食べます。", "example_zh": "吃水果。"}, {"kanji": "卵", "kana": "たまご", "romaji": "tamago", "meaning_zh": "鸡蛋", "example_ja": "卵を焼きます。", "example_zh": "煎鸡蛋。"}, {"kanji": "塩", "kana": "しお", "romaji": "shio", "meaning_zh": "盐", "example_ja": "塩を少し入れてください。", "example_zh": "请放一点盐。"}, {"kanji": "砂糖", "kana": "さとう", "romaji": "satou", "meaning_zh": "糖", "example_ja": "砂糖を入れます。", "example_zh": "放糖。"}, {"kanji": "朝", "kana": "あさ", "romaji": "asa", "meaning_zh": "早上", "example_ja": "朝ごはんを食べます。", "example_zh": "吃早饭。"}, {"kanji": "昼", "kana": "ひる", "romaji": "hiru", "meaning_zh": "中午", "example_ja": "昼休みです。", "example_zh": "是午休。"}, {"kanji": "晩", "kana": "ばん", "romaji": "ban", "meaning_zh": "晚上", "example_ja": "晩ごはんは何ですか。", "example_zh": "晚饭是什么？"}, {"kanji": "夜", "kana": "よる", "romaji": "yoru", "meaning_zh": "夜里", "example_ja": "夜遅くまで勉強します。", "example_zh": "学习到很晚。"}, {"kanji": "今日", "kana": "きょう", "romaji": "kyou", "meaning_zh": "今天", "example_ja": "今日は暑いです。", "example_zh": "今天很热。"}, {"kanji": "明日", "kana": "あした", "romaji": "ashita", "meaning_zh": "明天", "example_ja": "明日会いましょう。", "example_zh": "明天见。"}, {"kanji": "昨日", "kana": "きのう", "romaji": "kinou", "meaning_zh": "昨天", "example_ja": "昨日映画を見ました。", "example_zh": "昨天看了电影。"}, {"kanji": "今週", "kana": "こんしゅう", "romaji": "konshuu", "meaning_zh": "这周", "example_ja": "今週は忙しいです。", "example_zh": "这周很忙。"}, {"kanji": "来週", "kana": "らいしゅう", "romaji": "raishuu", "meaning_zh": "下周", "example_ja": "来週旅行します。", "example_zh": "下周旅行。"}, {"kanji": "先週", "kana": "せんしゅう", "romaji": "senshuu", "meaning_zh": "上周", "example_ja": "先週東京に行きました。", "example_zh": "上周去了东京。"}, {"kanji": "今年", "kana": "ことし", "romaji": "kotoshi", "meaning_zh": "今年", "example_ja": "今年は忙しいです。", "example_zh": "今年很忙。"}, {"kanji": "来年", "kana": "らいねん", "romaji": "rainen", "meaning_zh": "明年", "example_ja": "来年日本へ行きます。", "example_zh": "明年去日本。"}, {"kanji": "去年", "kana": "きょねん", "romaji": "kyonen", "meaning_zh": "去年", "example_ja": "去年結婚しました。", "example_zh": "去年结婚了。"}, {"kanji": "時間", "kana": "じかん", "romaji": "jikan", "meaning_zh": "时间", "example_ja": "時間がありません。", "example_zh": "没有时间。"}, {"kanji": "分", "kana": "ふん", "romaji": "fun", "meaning_zh": "分钟", "example_ja": "五分待ってください。", "example_zh": "请等五分钟。"}, {"kanji": "時", "kana": "とき", "romaji": "toki", "meaning_zh": "时候", "example_ja": "暇な時に読んでください。", "example_zh": "有空的时候请读。"}, {"kanji": "今", "kana": "いま", "romaji": "ima", "meaning_zh": "现在", "example_ja": "今何時ですか。", "example_zh": "现在几点？"}, {"kanji": "前", "kana": "まえ", "romaji": "mae", "meaning_zh": "前面/以前", "example_ja": "駅の前で待ちます。", "example_zh": "在车站前面等。"}, {"kanji": "後ろ", "kana": "うしろ", "romaji": "ushiro", "meaning_zh": "后面", "example_ja": "後ろを見てください。", "example_zh": "请看后面。"}, {"kanji": "右", "kana": "みぎ", "romaji": "migi", "meaning_zh": "右边", "example_ja": "右に曲がってください。", "example_zh": "请向右转。"}, {"kanji": "左", "kana": "ひだり", "romaji": "hidari", "meaning_zh": "左边", "example_ja": "左にあります。", "example_zh": "在左边。"}, {"kanji": "上", "kana": "うえ", "romaji": "ue", "meaning_zh": "上面", "example_ja": "机の上にあります。", "example_zh": "在桌子上。"}, {"kanji": "下", "kana": "した", "romaji": "shita", "meaning_zh": "下面", "example_ja": "椅子の下です。", "example_zh": "在椅子下面。"}, {"kanji": "中", "kana": "なか", "romaji": "naka", "meaning_zh": "里面", "example_ja": "箱の中にあります。", "example_zh": "在箱子里。"}, {"kanji": "外", "kana": "そと", "romaji": "soto", "meaning_zh": "外面", "example_ja": "外は寒いです。", "example_zh": "外面很冷。"}, {"kanji": "隣", "kana": "となり", "romaji": "tonari", "meaning_zh": "旁边", "example_ja": "隣に住んでいます。", "example_zh": "住在旁边。"}, {"kanji": "近く", "kana": "ちかく", "romaji": "chikaku", "meaning_zh": "附近", "example_ja": "駅の近くです。", "example_zh": "在车站附近。"}, {"kanji": "遠く", "kana": "とおく", "romaji": "tooku", "meaning_zh": "远处", "example_ja": "遠くから来ました。", "example_zh": "从远处来。"}, {"kanji": "大きい", "kana": "おおきい", "romaji": "ookii", "meaning_zh": "大的", "example_ja": "大きい家です。", "example_zh": "是大房子。"}, {"kanji": "小さい", "kana": "ちいさい", "romaji": "chiisai", "meaning_zh": "小的", "example_ja": "小さい犬です。", "example_zh": "是小狗。"}, {"kanji": "新しい", "kana": "あたらしい", "romaji": "atarashii", "meaning_zh": "新的", "example_ja": "新しい車です。", "example_zh": "是新车。"}, {"kanji": "古い", "kana": "ふるい", "romaji": "furui", "meaning_zh": "旧的", "example_ja": "古い本です。", "example_zh": "是旧书。"}, {"kanji": "高い", "kana": "たかい", "romaji": "takai", "meaning_zh": "高的/贵的", "example_ja": "この店は高いです。", "example_zh": "这家店贵。"}, {"kanji": "安い", "kana": "やすい", "romaji": "yasui", "meaning_zh": "便宜的", "example_ja": "安いレストランです。", "example_zh": "是便宜的餐厅。"}, {"kanji": "高い（身高）", "kana": "たかい", "romaji": "takai", "meaning_zh": "高（身高）", "example_ja": "背が高いです。", "example_zh": "个子高。"}, {"kanji": "低い", "kana": "ひくい", "romaji": "hikui", "meaning_zh": "低的/矮的", "example_ja": "低い山です。", "example_zh": "是矮山。"}, {"kanji": "長い", "kana": "ながい", "romaji": "nagai", "meaning_zh": "长的", "example_ja": "長い道です。", "example_zh": "是长路。"}, {"kanji": "短い", "kana": "みじかい", "romaji": "mijikai", "meaning_zh": "短的", "example_ja": "短いスカートです。", "example_zh": "是短裙。"}, {"kanji": "早い", "kana": "はやい", "romaji": "hayai", "meaning_zh": "早的/快的", "example_ja": "朝早いです。", "example_zh": "早上很早。"}, {"kanji": "遅い", "kana": "おそい", "romaji": "osoi", "meaning_zh": "晚的/慢的", "example_ja": "電車が遅いです。", "example_zh": "电车很慢。"}, {"kanji": "多い", "kana": "おおい", "romaji": "ooi", "meaning_zh": "多的", "example_ja": "人が多いです。", "example_zh": "人很多。"}, {"kanji": "少ない", "kana": "すくない", "romaji": "sukunai", "meaning_zh": "少的", "example_ja": "時間が少ないです。", "example_zh": "时间很少。"}, {"kanji": "いい", "kana": "いい", "romaji": "ii", "meaning_zh": "好的", "example_ja": "いい天気です。", "example_zh": "好天气。"}, {"kanji": "悪い", "kana": "わるい", "romaji": "warui", "meaning_zh": "坏的", "example_ja": "調子が悪いです。", "example_zh": "状态不好。"}, {"kanji": "難しい", "kana": "むずかしい", "romaji": "muzukashii", "meaning_zh": "难的", "example_ja": "日本語は難しいです。", "example_zh": "日语很难。"}, {"kanji": "易しい", "kana": "やさしい", "romaji": "yasashii", "meaning_zh": "简单的", "example_ja": "この問題は易しいです。", "example_zh": "这道题简单。"}, {"kanji": "面白い", "kana": "おもしろい", "romaji": "omoshiroi", "meaning_zh": "有趣的", "example_ja": "面白い映画です。", "example_zh": "有趣的电影。"}, {"kanji": "楽しい", "kana": "たのしい", "romaji": "tanoshii", "meaning_zh": "快乐的", "example_ja": "楽しい一日でした。", "example_zh": "快乐的一天。"}, {"kanji": "忙しい", "kana": "いそがしい", "romaji": "isogashii", "meaning_zh": "忙碌的", "example_ja": "仕事が忙しいです。", "example_zh": "工作很忙。"}, {"kanji": "暇", "kana": "ひま", "romaji": "hima", "meaning_zh": "空闲", "example_ja": "今日は暇です。", "example_zh": "今天很闲。"}, {"kanji": "寒い", "kana": "さむい", "romaji": "samui", "meaning_zh": "冷的", "example_ja": "冬は寒いです。", "example_zh": "冬天很冷。"}, {"kanji": "暑い", "kana": "あつい", "romaji": "atsui", "meaning_zh": "热的", "example_ja": "夏は暑いです。", "example_zh": "夏天很热。"}, {"kanji": "暖かい", "kana": "あたたかい", "romaji": "atatakai", "meaning_zh": "暖和的", "example_ja": "春は暖かいです。", "example_zh": "春天暖和。"}, {"kanji": "涼しい", "kana": "すずしい", "romaji": "suzushii", "meaning_zh": "凉爽的", "example_ja": "秋は涼しいです。", "example_zh": "秋天凉爽。"}, {"kanji": "猫", "kana": "ねこ", "romaji": "neko", "meaning_zh": "猫", "example_ja": "猫が好きです。", "example_zh": "喜欢猫。"}];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickChoices(correct, all) {
+  const others = shuffle(all.filter(w => w.meaning_zh !== correct.meaning_zh)).slice(0, 3);
+  return shuffle([correct, ...others]);
+}
+
+function displayHead(w) {
+  if (w.kanji && w.kanji !== w.kana) return w.kanji;
+  return w.kana || w.kanji;
+}
+
+const el = (id) => document.getElementById(id);
+let state = { queue: [], index: 0, score: 0, answered: false, lastN: 10 };
+
+function showScreen(name) {
+  ["start", "quiz", "result"].forEach(n => {
+    el("screen-" + n).classList.toggle("active", n === name);
+  });
+}
+
+function startQuiz(n) {
+  state.lastN = n;
+  const pool = shuffle(WORDS);
+  state.queue = n >= WORDS.length ? pool : pool.slice(0, n);
+  state.index = 0;
+  state.score = 0;
+  el("qTotal").textContent = state.queue.length;
+  el("score").textContent = "0";
+  showScreen("quiz");
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const w = state.queue[state.index];
+  state.answered = false;
+  el("qNum").textContent = String(state.index + 1);
+  el("prog").style.width = ((state.index) / state.queue.length * 100) + "%";
+  el("kanji").textContent = displayHead(w);
+  el("kana").textContent = (w.kanji && w.kanji !== w.kana) ? w.kana : "";
+  const showR = el("showRomaji").checked;
+  el("romaji").hidden = !showR;
+  el("romaji").textContent = showR ? (w.romaji || "") : "";
+  el("example").classList.remove("show");
+  el("example").textContent = "";
+  el("feedback").textContent = "";
+  el("feedback").className = "feedback";
+  el("btnNext").disabled = true;
+  el("btnNext").textContent = state.index + 1 >= state.queue.length ? "看成绩" : "下一题";
+
+  const choices = pickChoices(w, WORDS);
+  const box = el("choices");
+  box.innerHTML = "";
+  choices.forEach((c) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "choice";
+    b.textContent = c.meaning_zh;
+    b.addEventListener("click", () => onChoose(b, c, w));
+    box.appendChild(b);
+  });
+}
+
+function onChoose(btn, chosen, correct) {
+  if (state.answered) return;
+  state.answered = true;
+  const ok = chosen.meaning_zh === correct.meaning_zh;
+  if (ok) {
+    state.score += 1;
+    el("score").textContent = String(state.score);
+    el("feedback").textContent = "正确 ✓";
+    el("feedback").className = "feedback ok";
+    btn.classList.add("correct");
+  } else {
+    el("feedback").textContent = "不对 · 答案是「" + correct.meaning_zh + "」";
+    el("feedback").className = "feedback bad";
+    btn.classList.add("wrong");
+    [...el("choices").children].forEach(ch => {
+      if (ch.textContent === correct.meaning_zh) ch.classList.add("correct");
+    });
+  }
+  [...el("choices").children].forEach(ch => { ch.disabled = true; });
+  if (correct.example_ja) {
+    el("example").textContent = correct.example_ja + (correct.example_zh ? "　" + correct.example_zh : "");
+    el("example").classList.add("show");
+  }
+  el("btnNext").disabled = false;
+  el("prog").style.width = ((state.index + 1) / state.queue.length * 100) + "%";
+}
+
+function nextOrFinish() {
+  if (!state.answered) return;
+  if (state.index + 1 >= state.queue.length) {
+    finish();
+  } else {
+    state.index += 1;
+    renderQuestion();
+  }
+}
+
+function finish() {
+  const total = state.queue.length;
+  const s = state.score;
+  el("finalScore").textContent = s + "/" + total;
+  const pct = total ? Math.round(s / total * 100) : 0;
+  let msg = "继续加油。";
+  if (pct >= 90) msg = "很稳，可以加到 20 题。";
+  else if (pct >= 70) msg = "不错，错的词再过一遍。";
+  else if (pct >= 50) msg = "先练 10 题打底就好。";
+  else msg = "没事，多刷几轮就熟。";
+  el("finalMsg").textContent = "正确率 " + pct + "% · " + msg;
+  showScreen("result");
+}
+
+el("btnStart10").addEventListener("click", () => startQuiz(10));
+el("btnStart20").addEventListener("click", () => startQuiz(20));
+el("btnStartAll").addEventListener("click", () => startQuiz(WORDS.length));
+el("btnNext").addEventListener("click", nextOrFinish);
+el("btnHome").addEventListener("click", () => showScreen("start"));
+el("btnAgain").addEventListener("click", () => startQuiz(state.lastN));
+el("btnBack").addEventListener("click", () => showScreen("start"));
+</script>
+</body>
+</html>
